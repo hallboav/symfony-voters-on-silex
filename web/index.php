@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use App\ControllerApplication;
+use App\Security\Core\Authorization\Voter\AdulthoodVoter;
 use App\Security\Core\User\InMemoryUserProvider;
 use App\Security\Core\User\User;
 use Silex\Provider\SecurityServiceProvider;
@@ -20,6 +21,11 @@ $app->register(new SecurityServiceProvider(), [
         ]
     ]
 ]);
+
+$app->extend('security.voters', function ($voters, $app) {
+    $voters[] = new AdulthoodVoter();
+    return $voters;
+});
 
 $app['security.user_provider.' . $providerKey] = function ($app) {
     return new InMemoryUserProvider([
@@ -48,6 +54,7 @@ $app->error(function (\Exception $exception, Request $request, $code) {
 });
 
 $app->get('/', function () use ($app) {
+    $app->denyAccessUnlessGranted(AdulthoodVoter::ADULTHOOD);
     return Response::create('XXX');
 });
 
